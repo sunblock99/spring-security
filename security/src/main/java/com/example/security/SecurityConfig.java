@@ -88,6 +88,10 @@ public class SecurityConfig {
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
                 ;
+        http
+                .sessionManagement()
+                .sessionFixation().changeSessionId()
+                ;
 
 
         return http.build();
