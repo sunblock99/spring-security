@@ -3,8 +3,13 @@ package com.example.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,78 +27,26 @@ import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    UserDetailsService userDetailsService;
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.inMemoryAuthentication().withUser("user").password("{noop}1234").roles("USER");
+        auth.inMemoryAuthentication().withUser("sys").password("{noop}1234").roles("SYS");
+        auth.inMemoryAuthentication().withUser("admin").password("{noop}1234").roles("ADMIN");
 
-    @Bean
-    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        http
-                .authorizeHttpRequests()
-                .anyRequest()
-                .authenticated();
-
-        http
-                .formLogin()
-//                .loginPage("/loginPage")
-//                .defaultSuccessUrl("/")
-//                .failureUrl("/login")
-//                .usernameParameter("userId")
-//                .passwordParameter("passwd")
-//                .loginProcessingUrl("login_proc")
-//                .successHandler(new AuthenticationSuccessHandler() {
-//                    @Override
-//                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-//                        System.out.println("authentication : " + authentication.getName());
-//                        response.sendRedirect("/");
-//                    }
-//                })
-//                .failureHandler(new AuthenticationFailureHandler() {
-//                    @Override
-//                    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-//                        System.out.println("exception : " + exception.getMessage());
-//                        response.sendRedirect("/login");
-//                    }
-//                })
-//                .permitAll()
-        ;
-        http
-                .logout()
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login")
-                .addLogoutHandler(new LogoutHandler() {
-                    @Override
-                    public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-                        HttpSession session = request.getSession();
-                        session.invalidate();
-                    }
-                })
-                .logoutSuccessHandler(new LogoutSuccessHandler() {
-                    @Override
-                    public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                        response.sendRedirect("/login");
-                    }
-                })
-                .deleteCookies("remember-me")
-                ;
-        http
-                .rememberMe()
-                .rememberMeParameter("remember")
-                .tokenValiditySeconds(3600)
-                .userDetailsService(userDetailsService)
-                ;
-        http
-                .sessionManagement()
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-                ;
-        http
-                .sessionManagement()
-                .sessionFixation().changeSessionId()
-                ;
-
-
-        return http.build();
     }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+    http
+            .authorizeRequests()
+            .antMatchers("/user").hasRole("USER")
+            .antMatchers("/admin/pay").hasRole("ADMIN")
+            .antMatchers("/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")
+            .anyRequest().authenticated();
+    http
+            .formLogin();
+    }
+
 }
