@@ -37,16 +37,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-    http
-            .authorizeRequests()
-            .anyRequest().permitAll();
-    http
-            .formLogin()
-            ;
-    // csrf 란 사이트간 변조를 방지하기위해 http 헤더에 값을 넣어주어서 변조 되는지 확인함
-    http
-            .csrf().disable();
+        http
+                .antMatcher("/admin/**")
+                .authorizeRequests()
+                .anyRequest().authenticated()
+                .and()
+                .httpBasic();
 
     }
+
+
+}
+
+@Configuration
+
+class SecurityConfig2 extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .anyRequest().permitAll()
+                .and()
+                .formLogin()
+        ;
+
+    }
+
 
 }
