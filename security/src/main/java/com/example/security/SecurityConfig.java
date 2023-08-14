@@ -3,6 +3,7 @@ package com.example.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -31,8 +32,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
+
+//설정 클래스 위에 @Order( 숫자 )를 찾을 수 있다. 숫자가 작을 수록 우선순위가 높은건데, 필터 체인 리스트에 들어가는 순서이다.
 @Configuration
 @EnableWebSecurity
+@Order(0)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
@@ -50,7 +54,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 }
 
 @Configuration
-
+@Order(1)
 class SecurityConfig2 extends WebSecurityConfigurerAdapter {
 
     @Override
